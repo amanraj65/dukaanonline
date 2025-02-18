@@ -2,42 +2,47 @@
 <?php
 session_start();
 include('include/config.php');
-if(strlen($_SESSION['alogin'])==0)
-	{	
-header('location:index.php');
+if(strlen($_SESSION['alogin'])==0) {	
+    header('location:index.php');
+} else {
+    
+if(isset($_POST['submit'])) {
+    $category = $_POST['category'];
+    $subcat = $_POST['subcategory'];
+    $productname = $_POST['productName'];
+    $productcompany = $_POST['productCompany'];
+    $productprice = $_POST['productprice'];
+    $productpricebd = $_POST['productpricebd'];
+    $productdescription = $_POST['productDescription'];
+    $productscharge = $_POST['productShippingcharge'];
+    $productavailability = $_POST['productAvailability'];
+    $productimage1 = $_FILES["productimage1"]["name"];
+    $productimage2 = $_FILES["productimage2"]["name"];
+    $productimage3 = $_FILES["productimage3"]["name"];
+    $stock = $_POST['stock'];  // New Field
+    $threshold = $_POST['threshold'];  // New Field
+
+    // Get max product ID
+    $query = mysqli_query($con, "SELECT MAX(id) as pid FROM products");
+    $result = mysqli_fetch_array($query);
+    $productid = $result['pid'] + 1;
+    
+    // Create directory for product images
+    $dir = "productimages/$productid";
+    mkdir($dir);
+
+    move_uploaded_file($_FILES["productimage1"]["tmp_name"], "productimages/$productid/".$_FILES["productimage1"]["name"]);
+    move_uploaded_file($_FILES["productimage2"]["tmp_name"], "productimages/$productid/".$_FILES["productimage2"]["name"]);
+    move_uploaded_file($_FILES["productimage3"]["tmp_name"], "productimages/$productid/".$_FILES["productimage3"]["name"]);
+
+    // Insert into database
+    $sql = mysqli_query($con, "INSERT INTO products (category, subCategory, productName, productCompany, productPrice, productPriceBeforeDiscount, productDescription, shippingCharge, productAvailability, productImage1, productImage2, productImage3, stock, stock_threshold) 
+    VALUES ('$category', '$subcat', '$productname', '$productcompany', '$productprice', '$productpricebd', '$productdescription', '$productscharge', '$productavailability', '$productimage1', '$productimage2', '$productimage3', '$stock', '$threshold')");
+
+    $_SESSION['msg'] = "Product Inserted Successfully !!";
 }
-else{
-	
-if(isset($_POST['submit']))
-{
-	$category=$_POST['category'];
-	$subcat=$_POST['subcategory'];
-	$productname=$_POST['productName'];
-	$productcompany=$_POST['productCompany'];
-	$productprice=$_POST['productprice'];
-	$productpricebd=$_POST['productpricebd'];
-	$productdescription=$_POST['productDescription'];
-	$productscharge=$_POST['productShippingcharge'];
-	$productavailability=$_POST['productAvailability'];
-	$productimage1=$_FILES["productimage1"]["name"];
-	$productimage2=$_FILES["productimage2"]["name"];
-	$productimage3=$_FILES["productimage3"]["name"];
-//for getting product id
-$query=mysqli_query($con,"select max(id) as pid from products");
-	$result=mysqli_fetch_array($query);
-	 $productid=$result['pid']+1;
-	$dir="productimages/$productid";
-	mkdir($dir);// directory creation for product images
-	move_uploaded_file($_FILES["productimage1"]["tmp_name"],"productimages/$productid/".$_FILES["productimage1"]["name"]);
-	move_uploaded_file($_FILES["productimage2"]["tmp_name"],"productimages/$productid/".$_FILES["productimage2"]["name"]);
-	move_uploaded_file($_FILES["productimage3"]["tmp_name"],"productimages/$productid/".$_FILES["productimage3"]["name"]);
-$sql=mysqli_query($con,"insert into products(category,subCategory,productName,productCompany,productPrice,productDescription,shippingCharge,productAvailability,productImage1,productImage2,productImage3,productPriceBeforeDiscount) values('$category','$subcat','$productname','$productcompany','$productprice','$productdescription','$productscharge','$productavailability','$productimage1','$productimage2','$productimage3','$productpricebd')");
-$_SESSION['msg']="Product Inserted Successfully !!";
-
-}
-
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -185,6 +190,20 @@ while($row=mysqli_fetch_array($query))
 </select>
 </div>
 </div>
+
+<div class="control-group">
+                                    <label class="control-label" for="basicinput">Stock</label>
+                                    <div class="controls">
+                                        <input type="number" name="stock" placeholder="Enter Stock Quantity" class="span8 tip" required>
+                                    </div>
+                                </div>
+
+                                <div class="control-group">
+                                    <label class="control-label" for="basicinput">Stock Threshold</label>
+                                    <div class="controls">
+                                        <input type="number" name="threshold" placeholder="Enter Stock Threshold" class="span8 tip" required>
+                                    </div>
+                                </div>
 
 
 
