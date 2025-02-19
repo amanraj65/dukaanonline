@@ -8,22 +8,33 @@ header('location:index.php');
 }
 else{
 	$pid=intval($_GET['id']);// product id
-if(isset($_POST['submit']))
-{
-	$category=$_POST['category'];
-	$subcat=$_POST['subcategory'];
-	$productname=$_POST['productName'];
-	$productcompany=$_POST['productCompany'];
-	$productprice=$_POST['productprice'];
-	$productpricebd=$_POST['productpricebd'];
-	$productdescription=$_POST['productDescription'];
-	$productscharge=$_POST['productShippingcharge'];
-	$productavailability=$_POST['productAvailability'];
+	if(isset($_POST['submit'])) {
+		$category = $_POST['category'];
+		$subcat = $_POST['subcategory'];
+		$productname = $_POST['productName'];
+		$productcompany = $_POST['productCompany'];
+		$productprice = $_POST['productprice'];
+		$productpricebd = $_POST['productpricebd'];
+		$productdescription = $_POST['productDescription'];
+		$productscharge = $_POST['productShippingcharge'];
+		$productavailability = $_POST['productAvailability'];
+		$stock_threshold = $_POST['stock_threshold']; // New field
 	
-$sql=mysqli_query($con,"update  products set category='$category',subCategory='$subcat',productName='$productname',productCompany='$productcompany',productPrice='$productprice',productDescription='$productdescription',shippingCharge='$productscharge',productAvailability='$productavailability',productPriceBeforeDiscount='$productpricebd' where id='$pid' ");
-$_SESSION['msg']="Product Updated Successfully !!";
-
-}
+		$sql = mysqli_query($con, "UPDATE products SET 
+			category='$category',
+			subCategory='$subcat',
+			productName='$productname',
+			productCompany='$productcompany',
+			productPrice='$productprice',
+			productPriceBeforeDiscount='$productpricebd',
+			productDescription='$productdescription',
+			shippingCharge='$productscharge',
+			productAvailability='$productavailability',
+			stock_threshold='$stock_threshold' 
+			WHERE id='$pid'");
+	
+		$_SESSION['msg'] = "Product Updated Successfully !!";
+	}
 
 
 ?>
@@ -183,6 +194,14 @@ while($rw=mysqli_fetch_array($query))
 <div class="controls">
 <input type="text"    name="productShippingcharge"  placeholder="Enter Product Shipping Charge" value="<?php echo htmlentities($row['shippingCharge']);?>" class="span8 tip" required>
 </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="basicinput">Stock Threshold</label>
+    <div class="controls">
+        <input type="number" name="stock_threshold" placeholder="Enter Stock Threshold" 
+               value="<?php echo htmlentities($row['stock_threshold']);?>" class="span8 tip" required>
+    </div>
 </div>
 
 <div class="control-group">
