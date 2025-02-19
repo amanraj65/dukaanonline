@@ -10,7 +10,7 @@
                     $from = date('Y-m-d') . " " . $f1;
                     $t1 = "23:59:59";
                     $to = date('Y-m-d') . " " . $t1;
-                    $result = mysqli_query($con, "SELECT * FROM Orders where orderDate Between '$from' and '$to'");
+                    $result = mysqli_query($con, "SELECT * FROM Orders WHERE orderDate BETWEEN '$from' AND '$to'");
                     $num_rows1 = mysqli_num_rows($result);
                     ?>
                     <b class="label orange pull-right"><?php echo htmlentities($num_rows1); ?></b>
@@ -22,7 +22,7 @@
                     Pending Orders
                     <?php
                     $status = 'Delivered';
-                    $ret = mysqli_query($con, "SELECT * FROM Orders where orderStatus!='$status' || orderStatus is null");
+                    $ret = mysqli_query($con, "SELECT * FROM Orders WHERE orderStatus!='$status' OR orderStatus IS NULL");
                     $num = mysqli_num_rows($ret);
                     ?>
                     <b class="label orange pull-right"><?php echo htmlentities($num); ?></b>
@@ -34,7 +34,7 @@
                     Delivered Orders
                     <?php
                     $status = 'Delivered';
-                    $rt = mysqli_query($con, "SELECT * FROM Orders where orderStatus='$status'");
+                    $rt = mysqli_query($con, "SELECT * FROM Orders WHERE orderStatus='$status'");
                     $num1 = mysqli_num_rows($rt);
                     ?>
                     <b class="label green pull-right"><?php echo htmlentities($num1); ?></b>
@@ -53,6 +53,21 @@
             <li><a href="subcategory.php"><i class="menu-icon icon-tasks"></i> Sub Category </a></li>
             <li><a href="insert-product.php"><i class="menu-icon icon-paste"></i> Insert Product </a></li>
             <li><a href="manage-products.php"><i class="menu-icon icon-table"></i> Manage Products </a></li>
+        </ul>
+
+        <ul class="widget widget-menu unstyled">
+            <li>
+                <a href="notifications.php">
+                    <i class="icon-bell"></i>
+                    Stock Notifications
+                    <?php
+                    $stock_query = mysqli_query($con, "SELECT COUNT(*) AS low_stock FROM products WHERE stock <= stock_threshold");
+                    $stock_result = mysqli_fetch_assoc($stock_query);
+                    $low_stock_count = $stock_result['low_stock'];
+                    ?>
+                    <b class="label red pull-right"><?php echo htmlentities($low_stock_count); ?></b>
+                </a>
+            </li>
         </ul>
 
         <ul class="widget widget-menu unstyled">
