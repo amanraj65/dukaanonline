@@ -82,12 +82,16 @@ if (strlen($_SESSION['alogin']) == 0) {
                                         <th>Subcategory</th>
                                         <th>Company</th>
                                         <th>Stock</th>
+<th>Stock Threshold</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $query = mysqli_query($con, "SELECT products.*, category.categoryName, subcategory.subcategory FROM products JOIN category ON category.id=products.category JOIN subcategory ON subcategory.id=products.subCategory");
+                                    $query = mysqli_query($con, "SELECT products.*, category.categoryName, subcategory.subcategory, products.stock_threshold 
+                                    FROM products 
+                                    JOIN category ON category.id = products.category 
+                                    JOIN subcategory ON subcategory.id = products.subCategory");
                                     $cnt = 1;
                                     while ($row = mysqli_fetch_array($query)) {
                                     ?>
@@ -98,12 +102,17 @@ if (strlen($_SESSION['alogin']) == 0) {
                                             <td><?php echo htmlentities($row['subcategory']); ?></td>
                                             <td><?php echo htmlentities($row['productCompany']); ?></td>
                                             <td>
-                                                <form method="POST" style="display: inline;">
-                                                    <input type="hidden" name="product_id" value="<?php echo $row['id']; ?>">
-                                                    <input type="number" name="stock" value="<?php echo htmlentities($row['stock']); ?>" min="0" style="width: 80px;">
-                                                    <button type="submit" name="updateCart" class="btn btn-sm btn-primary">Update</button>
-                                                </form>
-                                            </td>
+    <form method="POST" style="display: inline;">
+        <input type="hidden" name="product_id" value="<?php echo $row['id']; ?>">
+        <input type="number" name="stock" value="<?php echo htmlentities($row['stock']); ?>" min="0" style="width: 80px;">
+        <button type="submit" name="updateCart" class="btn btn-sm btn-primary">Update</button>
+    </form>
+</td>
+<td>
+    <span class="badge badge-<?php echo ($row['stock'] < $row['stock_threshold']) ? 'danger' : 'success'; ?>">
+        <?php echo htmlentities($row['stock_threshold']); ?>
+    </span>
+</td>
                                             <td>
                                                 <a href="edit-products.php?id=<?php echo $row['id']; ?>"><i class="icon-edit"></i> Edit</a> | 
                                                 <a href="manage-products.php?id=<?php echo $row['id']; ?>&del=delete" onClick="return confirm('Are you sure you want to delete?')">
