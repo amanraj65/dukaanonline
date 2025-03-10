@@ -99,11 +99,14 @@
             </li>
               
             </ul>
+            <?php include('includes/chatbot.php');?>
     </div><!-- /.module-body -->
 </div><!-- /.contact-timing -->
 <!-- ============================================================= INFORMATION : END ============================================================= -->            	</div><!-- /.col -->
             </div><!-- /.row -->
         </div><!-- /.container -->
     </div><!-- /.links-social -->
+
+    
 
     

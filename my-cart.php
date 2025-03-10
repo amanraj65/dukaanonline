@@ -2,59 +2,61 @@
 session_start();
 error_reporting(0);
 include('includes/config.php');
+
 if(isset($_POST['submit'])){
-		if(!empty($_SESSION['cart'])){
-		foreach($_POST['quantity'] as $key => $val){
-			if($val==0){
-				unset($_SESSION['cart'][$key]);
-			}else{
-				$_SESSION['cart'][$key]['quantity']=$val;
-
-			}
-		}
-			echo "<script>alert('Your Cart hasbeen Updated');</script>";
-		}
-	}
-// Code for Remove a Product from Cart
-if(isset($_POST['remove_code']))
-	{
-
-if(!empty($_SESSION['cart'])){
-		foreach($_POST['remove_code'] as $key){
-			
-				unset($_SESSION['cart'][$key]);
-		}
-			echo "<script>alert('Your Cart has been Updated');</script>";
-	}
-}
-// code for insert product in order table
-
-
-if(isset($_POST['ordersubmit'])) 
-{
-	
-if(strlen($_SESSION['login'])==0)
-    {   
-header('location:login.php');
-}
-else{
-
-	$quantity=$_POST['quantity'];
-	$pdd=$_SESSION['pid'];
-	$value=array_combine($pdd,$quantity);
-
-
-		foreach($value as $qty=> $val34){
-
-
-
-mysqli_query($con,"insert into orders(userId,productId,quantity) values('".$_SESSION['id']."','$qty','$val34')");
-header('location:payment-method.php');
-}
-}
+    if(!empty($_SESSION['cart'])){
+        foreach($_POST['quantity'] as $key => $val){
+            if($val == 0){
+                unset($_SESSION['cart'][$key]);
+            } else {
+                $_SESSION['cart'][$key]['quantity'] = $val;
+            }
+        }
+        echo "<script>alert('Your Cart has been Updated');</script>";
+    }
 }
 
+// Handle AJAX request to remove a product from the cart
+if(isset($_POST['remove_product_id'])) {
+    $product_id = $_POST['remove_product_id'];
+    
+    if(!empty($_SESSION['cart'][$product_id])) {
+        unset($_SESSION['cart'][$product_id]); // Remove item from cart
 
+        // Recalculate total price after removal
+        $totalprice = 0;
+        foreach($_SESSION['cart'] as $id => $value){
+            $query = mysqli_query($con, "SELECT productPrice, shippingCharge FROM products WHERE id='$id'");
+            if($row = mysqli_fetch_assoc($query)) {
+                $totalprice += ($value['quantity'] * $row['productPrice']) + $row['shippingCharge'];
+            }
+        }
+        
+        $_SESSION['tp'] = $totalprice . ".00"; // Update total price in session
+
+        // Send JSON response
+        echo json_encode(['status' => 'success', 'message' => 'Item removed from cart', 'new_total' => "Rs " . $_SESSION['tp']]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Item not found']);
+    }
+    exit;
+}
+
+// Existing code for inserting product in order table
+if(isset($_POST['ordersubmit'])) {
+    if(strlen($_SESSION['login']) == 0) {   
+        header('location:login.php');
+    } else {
+        $quantity = $_POST['quantity'];
+        $pdd = $_SESSION['pid'];
+        $value = array_combine($pdd, $quantity);
+
+        foreach($value as $qty => $val34) {
+            mysqli_query($con, "INSERT INTO orders(userId, productId, quantity) VALUES('".$_SESSION['id']."','$qty','$val34')");
+            header('location:payment-method.php');
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -188,7 +190,9 @@ if(!empty($_SESSION['cart'])){
 	?>
 
 				<tr>
-					<td class="romove-item"><input type="checkbox" name="remove_code[]" value="<?php echo htmlentities($row['id']);?>" /></td>
+				<td class="romove-item">
+    <button type="button" class="btn btn-danger remove-item" data-id="<?php echo htmlentities($row['id']); ?>">Remove</button>
+</td>
 					<td class="cart-image">
 						<a class="entry-thumbnail" href="detail.html">
 						    <img src="admin/productimages/<?php echo $row['id'];?>/<?php echo $row['productImage1'];?>" alt="" width="114" height="146">
@@ -314,15 +318,16 @@ while ($rt=mysqli_fetch_array($qry)) {
 			</tr>
 		</thead><!-- /thead -->
 		<tbody>
-				<tr>
-					<td>
-						<div class="cart-checkout-btn pull-right">
-							<button type="submit" name="ordersubmit" class="btn btn-primary">PROCCED TO CHEKOUT</button>
-						
-						</div>
-					</td>
-				</tr>
-		</tbody><!-- /tbody -->
+    <tr>
+        <td>
+            <div class="cart-checkout-btn pull-right">
+                <button type="submit" name="ordersubmit" id="checkout-btn" class="btn <?php echo empty($_SESSION['cart']) ? 'btn-danger' : 'btn-primary'; ?>" <?php echo empty($_SESSION['cart']) ? 'disabled' : ''; ?>>
+                    <?php echo empty($_SESSION['cart']) ? 'Cart is Empty' : 'PROCEED TO CHECKOUT'; ?>
+                </button>
+            </div>
+        </td>
+    </tr>
+</tbody><!-- /tbody -->
 	</table>
 	<?php } else {
 echo "Your shopping Cart is empty";
@@ -368,6 +373,33 @@ echo "Your shopping Cart is empty";
 		   $('.show-theme-options').delay(2000).trigger('click');
 		});
 	</script>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function(){
+    $(".remove-item").click(function(){
+        var productId = $(this).data("id");
+        var row = $(this).closest("tr");
+
+        $.ajax({
+            url: "", // The same page (cart.php) handles the request
+            type: "POST",
+            data: { remove_product_id: productId },
+            dataType: "json",
+            success: function(response){
+                if(response.status == "success"){
+                    row.fadeOut(500, function(){
+                        $(this).remove();
+                        $("#cart-total").text(response.new_total); // Update grand total
+                    });
+                    alert(response.message);
+                } else {
+                    alert(response.message);
+                }
+            }
+        });
+    });
+});
+</script>
 	<!-- For demo purposes – can be removed on production : End -->
 </body>
 </html>

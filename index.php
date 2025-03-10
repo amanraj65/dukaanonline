@@ -532,8 +532,5 @@ while ($row=mysqli_fetch_array($ret))
 		});
 	</script>
 	<!-- For demo purposes – can be removed on production : End -->
-
-	
-
 </body>
 </html>
