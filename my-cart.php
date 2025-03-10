@@ -46,15 +46,33 @@ if(isset($_POST['remove_product_id'])) {
 if(isset($_POST['ordersubmit'])) {
     if(strlen($_SESSION['login']) == 0) {   
         header('location:login.php');
+        exit();
     } else {
+        // Check if addresses exist
+        $userid = $_SESSION['id'];
+        $query = mysqli_query($con, "SELECT billingAddress, shippingAddress FROM users WHERE id='$userid'");
+        $userdata = mysqli_fetch_assoc($query);
+        
+		if (empty($userdata['billingAddress']) || empty($userdata['shippingAddress'])) {
+			echo "<script>
+				var addAddress = confirm('You must add a shipping and billing address before proceeding. Click OK to add your address or Cancel to stay on this page.');
+				if (addAddress) {
+					window.location.href = 'bill-ship-addresses.php';
+				}
+			</script>";
+			exit();
+		}
+
+        // Proceed with order processing
         $quantity = $_POST['quantity'];
         $pdd = $_SESSION['pid'];
         $value = array_combine($pdd, $quantity);
 
         foreach($value as $qty => $val34) {
             mysqli_query($con, "INSERT INTO orders(userId, productId, quantity) VALUES('".$_SESSION['id']."','$qty','$val34')");
-            header('location:payment-method.php');
         }
+        header('location:payment-method.php');
+        exit();
     }
 }
 ?>

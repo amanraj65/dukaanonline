@@ -254,18 +254,25 @@ while($row=mysqli_fetch_array($query))
 	<script src="switchstylesheet/switchstylesheet.js"></script>
 	
 	<script>
-		$(document).ready(function(){ 
-			$(".changecolor").switchstylesheet( { seperator:"color"} );
-			$('.show-theme-options').click(function(){
-				$(this).parent().toggleClass('open');
-				return false;
-			});
-		});
+    $(document).ready(function () {
+        // Initialize the color switcher
+        $(".changecolor").switchstylesheet({ separator: "color" });
 
-		$(window).bind("load", function() {
-		   $('.show-theme-options').delay(2000).trigger('click');
-		});
-	</script>
+        // Toggle theme options when clicked
+        $(".show-theme-options").on("click", function (event) {
+            event.preventDefault(); // Prevent default link behavior
+            $(this).parent().toggleClass("open");
+        });
+    });
+
+    // Auto-trigger theme options after page load
+    $(window).on("load", function () {
+        setTimeout(function () {
+            $(".show-theme-options").trigger("click");
+        }, 2000);
+    });
+		
+</script>
 </body>
 </html>
 <?php } ?>

@@ -166,9 +166,6 @@ if(isset($_GET['action']) && $_GET['action']=="add"){
 			<div class="more-info-tab clearfix">
 			   <h3 class="new-product-title pull-left">Featured Products</h3>
 				<ul class="nav nav-tabs nav-tab-line pull-right" id="new-products-1">
-					<li class="active"><a href="#all" data-toggle="tab">All</a></li>
-					<li><a href="#books" data-toggle="tab">Books</a></li>
-					<li><a href="#furniture" data-toggle="tab">Furniture</a></li>
 				</ul><!-- /.nav-tabs -->
 			</div>
 
@@ -176,50 +173,54 @@ if(isset($_GET['action']) && $_GET['action']=="add"){
 				<div class="tab-pane in active" id="all">			
 					<div class="product-slider">
 						<div class="owl-carousel home-owl-carousel custom-carousel owl-theme" data-item="4">
-<?php
-$ret=mysqli_query($con,"select * from products");
-while ($row=mysqli_fetch_array($ret)) 
-{
-	# code...
-
-
+						<?php
+$ret = mysqli_query($con, "SELECT * FROM products");
+while ($row = mysqli_fetch_array($ret)) {
+    $isInStock = $row['stock'] > 0; // Check if stock is greater than 0
 ?>
 
-						    	
-		<div class="item item-carousel">
-			<div class="products">
-				
-	<div class="product">		
-		<div class="product-image">
-			<div class="image">
-				<a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>">
-				<img  src="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>" data-echo="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>"  width="180" height="300" alt=""></a>
-			</div><!-- /.image -->			
+    <div class="item item-carousel">
+        <div class="products">
+            <div class="product">
+                <div class="product-image">
+                    <div class="image">
+                        <a href="product-details.php?pid=<?php echo htmlentities($row['id']); ?>">
+                            <img src="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>" 
+                                data-echo="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>"  
+                                width="180" height="300" alt="">
+                        </a>
+                    </div><!-- /.image -->
+                </div><!-- /.product-image -->
 
-			                        		   
-		</div><!-- /.product-image -->
-			
-		
-		<div class="product-info text-left">
-			<h3 class="name"><a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>"><?php echo htmlentities($row['productName']);?></a></h3>
-			<div class="rating rateit-small"></div>
-			<div class="description"></div>
+                <div class="product-info text-left">
+                    <h3 class="name">
+                        <a href="product-details.php?pid=<?php echo htmlentities($row['id']); ?>">
+                            <?php echo htmlentities($row['productName']); ?>
+                        </a>
+                    </h3>
+                    <div class="rating rateit-small"></div>
+                    <div class="description"></div>
 
-			<div class="product-price">	
-				<span class="price">
-					Rs.<?php echo htmlentities($row['productPrice']);?>			</span>
-										     <span class="price-before-discount">Rs.<?php echo htmlentities($row['productPriceBeforeDiscount']);?>	</span>
-									
-			</div><!-- /.product-price -->
-			
-		</div><!-- /.product-info -->
-					<div class="action"><a href="index.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="lnk btn btn-primary">Add to Cart</a></div>
-			</div><!-- /.product -->
-      
-			</div><!-- /.products -->
-		</div><!-- /.item -->
-	<?php } ?>
+                    <div class="product-price">    
+                        <span class="price">Rs.<?php echo htmlentities($row['productPrice']); ?></span>
+                        <span class="price-before-discount">Rs.<?php echo htmlentities($row['productPriceBeforeDiscount']); ?></span>
+                    </div><!-- /.product-price -->
+                </div><!-- /.product-info -->
 
+                <!-- Stock Availability Check -->
+                <div class="action">
+                    <?php if ($isInStock) { ?>
+                        <a href="index.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="lnk btn btn-primary">Add to Cart</a>
+                    <?php } else { ?>
+                        <span class="out-of-stock-message" style="color: red; font-weight: bold;">Out of Stock</span>
+                    <?php } ?>
+                </div><!-- /.action -->
+
+            </div><!-- /.product -->
+        </div><!-- /.products -->
+    </div><!-- /.item -->
+    
+<?php } ?>
 			</div><!-- /.home-owl-carousel -->
 					</div><!-- /.product-slider -->
 				</div>
@@ -344,43 +345,54 @@ while ($row=mysqli_fetch_array($ret))
 	                   	<h3 class="section-title">VEGETABLES</h3>
 	                   	<div class="owl-carousel homepage-owl-carousel custom-carousel outer-top-xs owl-theme" data-item="2">
 	   
-<?php
-$ret=mysqli_query($con,"select * from products where category=4 and subCategory=4");
-while ($row=mysqli_fetch_array($ret)) 
-{
+<<?php
+$ret = mysqli_query($con, "SELECT * FROM products WHERE category=4 AND subCategory=4");
+while ($row = mysqli_fetch_array($ret)) {
+    $isInStock = $row['stock'] > 0; // Check if stock is available
 ?>
 
+    <div class="item item-carousel">
+        <div class="products">
+            <div class="product">
+                <div class="product-image">
+                    <div class="image">
+                        <a href="product-details.php?pid=<?php echo htmlentities($row['id']); ?>">
+                            <img src="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>" 
+                                data-echo="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>"  
+                                width="180" height="300">
+                        </a>
+                    </div><!-- /.image -->
+                </div><!-- /.product-image -->
 
+                <div class="product-info text-left">
+                    <h3 class="name">
+                        <a href="product-details.php?pid=<?php echo htmlentities($row['id']); ?>">
+                            <?php echo htmlentities($row['productName']); ?>
+                        </a>
+                    </h3>
+                    <div class="rating rateit-small"></div>
+                    <div class="description"></div>
 
-		<div class="item item-carousel">
-			<div class="products">
-				
-	<div class="product">		
-		<div class="product-image">
-			<div class="image">
-				<a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>"><img  src="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>" data-echo="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>"  width="180" height="300"></a>
-			</div><!-- /.image -->			                        		   
-		</div><!-- /.product-image -->
-			
-		
-		<div class="product-info text-left">
-			<h3 class="name"><a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>"><?php echo htmlentities($row['productName']);?></a></h3>
-			<div class="rating rateit-small"></div>
-			<div class="description"></div>
+                    <div class="product-price">    
+                        <span class="price">Rs. <?php echo htmlentities($row['productPrice']); ?></span>
+                        <span class="price-before-discount">Rs. <?php echo htmlentities($row['productPriceBeforeDiscount']); ?></span>
+                    </div><!-- /.product-price -->
+                </div><!-- /.product-info -->
 
-			<div class="product-price">	
-				<span class="price">
-					Rs. <?php echo htmlentities($row['productPrice']);?>			</span>
-										     <span class="price-before-discount">Rs.<?php echo htmlentities($row['productPriceBeforeDiscount']);?></span>
-									
-			</div>
-			
-		</div>
-					<div class="action"><a href="index.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="lnk btn btn-primary">Add to Cart</a></div>
-			</div>
-			</div>
-		</div>
-<?php }?>
+                <!-- Stock Availability Check -->
+                <div class="action">
+                    <?php if ($isInStock) { ?>
+                        <a href="index.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="lnk btn btn-primary">Add to Cart</a>
+                    <?php } else { ?>
+                        <span class="out-of-stock-message" style="color: red; font-weight: bold;">Out of Stock</span>
+                    <?php } ?>
+                </div><!-- /.action -->
+
+            </div><!-- /.product -->
+        </div><!-- /.products -->
+    </div><!-- /.item -->
+    
+<?php } ?>
 
 	
 			                   	</div>
@@ -390,44 +402,54 @@ while ($row=mysqli_fetch_array($ret))
 						<section class="section">
 							<h3 class="section-title">HERBS AND SEASONINGS</h3>
 		                   	<div class="owl-carousel homepage-owl-carousel custom-carousel outer-top-xs owl-theme" data-item="2">
-	<?php
-$ret=mysqli_query($con,"select * from products where category=4 and subCategory=6");
-while ($row=mysqli_fetch_array($ret)) 
-{
+							   <?php
+$ret = mysqli_query($con, "SELECT * FROM products WHERE category=4 AND subCategory=6");
+while ($row = mysqli_fetch_array($ret)) {
+    $isInStock = $row['stock'] > 0; // Check if stock is available
 ?>
 
+    <div class="item item-carousel">
+        <div class="products">
+            <div class="product">
+                <div class="product-image">
+                    <div class="image">
+                        <a href="product-details.php?pid=<?php echo htmlentities($row['id']); ?>">
+                            <img src="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>" 
+                                data-echo="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>"  
+                                width="300" height="300">
+                        </a>
+                    </div><!-- /.image -->
+                </div><!-- /.product-image -->
 
+                <div class="product-info text-left">
+                    <h3 class="name">
+                        <a href="product-details.php?pid=<?php echo htmlentities($row['id']); ?>">
+                            <?php echo htmlentities($row['productName']); ?>
+                        </a>
+                    </h3>
+                    <div class="rating rateit-small"></div>
+                    <div class="description"></div>
 
-		<div class="item item-carousel">
-			<div class="products">
-				
-	<div class="product">		
-		<div class="product-image">
-			<div class="image">
-				<a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>"><img  src="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>" data-echo="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>"  width="300" height="300"></a>
-			</div><!-- /.image -->			                        		   
-		</div><!-- /.product-image -->
-			
-		
-		<div class="product-info text-left">
-			<h3 class="name"><a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>"><?php echo htmlentities($row['productName']);?></a></h3>
-			<div class="rating rateit-small"></div>
-			<div class="description"></div>
+                    <div class="product-price">    
+                        <span class="price">Rs. <?php echo htmlentities($row['productPrice']); ?></span>
+                        <span class="price-before-discount">Rs. <?php echo htmlentities($row['productPriceBeforeDiscount']); ?></span>
+                    </div><!-- /.product-price -->
+                </div><!-- /.product-info -->
 
-			<div class="product-price">	
-				<span class="price">
-					Rs .<?php echo htmlentities($row['productPrice']);?>			</span>
-										     <span class="price-before-discount">Rs.<?php echo htmlentities($row['productPriceBeforeDiscount']);?></span>
-									
-			</div>
-			
-		</div>
-					<div class="action"><a href="index.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="lnk btn btn-primary">Add to Cart</a></div>
-			</div>
-			</div>
-		</div>
-<?php }?>
+                <!-- Stock Availability Check -->
+                <div class="action">
+                    <?php if ($isInStock) { ?>
+                        <a href="index.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="lnk btn btn-primary">Add to Cart</a>
+                    <?php } else { ?>
+                        <span class="out-of-stock-message" style="color: red; font-weight: bold;">Out of Stock</span>
+                    <?php } ?>
+                </div><!-- /.action -->
 
+            </div><!-- /.product -->
+        </div><!-- /.products -->
+    </div><!-- /.item -->
+    
+<?php } ?>
 		
 	
 				                   	</div>
@@ -443,54 +465,59 @@ while ($row=mysqli_fetch_array($ret))
 	<section class="section featured-product inner-xs wow fadeInUp">
 		<h3 class="section-title">BAKERY & DAIRY</h3>
 		<div class="owl-carousel best-seller custom-carousel owl-theme outer-top-xs">
-			<?php
-$ret=mysqli_query($con,"select * from products where category=6");
-while ($row=mysqli_fetch_array($ret)) 
-{
-	# code...
-
-
+		<?php
+$ret = mysqli_query($con, "SELECT * FROM products WHERE category=6");
+while ($row = mysqli_fetch_array($ret)) {
+    $isInStock = $row['stock'] > 0; // Check stock availability
 ?>
-				<div class="item">
-					<div class="products">
+    <div class="item">
+        <div class="products">
+            <div class="product">
+                <div class="product-micro">
+                    <div class="row product-micro-row">
+                        <div class="col col-xs-6">
+                            <div class="product-image">
+                                <div class="image">
+                                    <a href="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>" 
+                                       data-lightbox="image-1" data-title="<?php echo htmlentities($row['productName']); ?>">
+                                        <img data-echo="admin/productimages/<?php echo htmlentities($row['id']); ?>/<?php echo htmlentities($row['productImage1']); ?>" 
+                                             width="170" height="174" alt="">
+                                        <div class="zoom-overlay"></div>
+                                    </a>                    
+                                </div><!-- /.image -->
+                            </div><!-- /.product-image -->
+                        </div><!-- /.col -->
+                        <div class="col col-xs-6">
+                            <div class="product-info">
+                                <h3 class="name">
+                                    <a href="product-details.php?pid=<?php echo htmlentities($row['id']); ?>">
+                                        <?php echo htmlentities($row['productName']); ?>
+                                    </a>
+                                </h3>
+                                <div class="rating rateit-small"></div>
+                                <div class="product-price">    
+                                    <span class="price">
+                                        Rs. <?php echo htmlentities($row['productPrice']); ?>
+                                    </span>
+                                </div><!-- /.product-price -->
 
+                                <!-- Stock Availability Check -->
+                                <div class="action">
+                                    <?php if ($isInStock) { ?>
+                                        <a href="index.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="lnk btn btn-primary">Add To Cart</a>
+                                    <?php } else { ?>
+                                        <span class="out-of-stock-message" style="color: red; font-weight: bold;">Out of Stock</span>
+                                    <?php } ?>
+                                </div><!-- /.action -->
 
-
-
-												<div class="product">
-							<div class="product-micro">
-								<div class="row product-micro-row">
-									<div class="col col-xs-6">
-										<div class="product-image">
-											<div class="image">
-												<a href="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>" data-lightbox="image-1" data-title="<?php echo htmlentities($row['productName']);?>">
-													<img data-echo="admin/productimages/<?php echo htmlentities($row['id']);?>/<?php echo htmlentities($row['productImage1']);?>" width="170" height="174" alt="">
-													<div class="zoom-overlay"></div>
-												</a>					
-											</div><!-- /.image -->
-
-										</div><!-- /.product-image -->
-									</div><!-- /.col -->
-									<div class="col col-xs-6">
-										<div class="product-info">
-											<h3 class="name"><a href="product-details.php?pid=<?php echo htmlentities($row['id']);?>"><?php echo htmlentities($row['productName']);?></a></h3>
-											<div class="rating rateit-small"></div>
-											<div class="product-price">	
-												<span class="price">
-													Rs. <?php echo htmlentities($row['productPrice']);?>
-												</span>
-
-											</div><!-- /.product-price -->
-											<div class="action"><a href="index.php?page=product&action=add&id=<?php echo $row['id']; ?>" class="lnk btn btn-primary">Add To Cart</a></div>
-										</div>
-									</div><!-- /.col -->
-								</div><!-- /.product-micro-row -->
-							</div><!-- /.product-micro -->
-						</div>
-
-
-											</div>
-				</div><?php } ?>
+                            </div><!-- /.product-info -->
+                        </div><!-- /.col -->
+                    </div><!-- /.product-micro-row -->
+                </div><!-- /.product-micro -->
+            </div><!-- /.product -->
+        </div><!-- /.products -->
+    </div><!-- /.item -->
+<?php } ?>
 							</div>
 		</section>
 <?php include('includes/brands-slider.php');?>

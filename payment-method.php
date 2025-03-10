@@ -3,35 +3,65 @@ session_start();
 error_reporting(0);
 include('includes/config.php');
 
-if(strlen($_SESSION['login'])==0) {   
+if(strlen($_SESSION['login']) == 0) {   
     header('location:login.php');
-} else {
-    if (isset($_POST['submit'])) {
+    exit();
+}
+
+if (isset($_POST['submit'])) {
+    if (!isset($_POST['paymethod'])) {
+        echo "<script>alert('Please select a payment method');</script>";
+    } else {
         $userId = $_SESSION['id'];
         $payMethod = $_POST['paymethod'];
 
-        // Update the payment method for orders without a payment method
-        $query = "UPDATE orders SET paymentMethod='$payMethod' WHERE userId='$userId' AND paymentMethod IS NULL";
-        $result = mysqli_query($con, $query);
+        // Fetch all orders for the user where payment is not yet processed
+        $orderQuery = "SELECT productId, quantity FROM orders WHERE userId='$userId' AND paymentMethod IS NULL";
+        $orderResult = mysqli_query($con, $orderQuery);
 
-        if ($result) {
-            // Fetch all orders for this user where payment method was just updated
-            $orderQuery = "SELECT productId, quantity FROM orders WHERE userId='$userId' AND paymentMethod='$payMethod'";
-            $orderResult = mysqli_query($con, $orderQuery);
+        $canProcessOrder = true; // Flag to track stock availability
 
-            while ($order = mysqli_fetch_assoc($orderResult)) {
-                $productId = $order['productId'];
-                $quantity = $order['quantity'];
+        // Check stock for each ordered product
+        while ($order = mysqli_fetch_assoc($orderResult)) {
+            $productId = $order['productId'];
+            $quantity = $order['quantity'];
 
-                // Reduce stock in the products table
-                $updateStockQuery = "UPDATE products SET stock = stock - $quantity WHERE id='$productId' AND stock >= $quantity";
-                mysqli_query($con, $updateStockQuery);
+            // Fetch the current stock of the product
+            $stockCheckQuery = "SELECT stock FROM products WHERE id='$productId'";
+            $stockCheckResult = mysqli_query($con, $stockCheckQuery);
+            $stockRow = mysqli_fetch_assoc($stockCheckResult);
+            $availableStock = $stockRow['stock'];
+
+            if ($availableStock < $quantity) {
+                $canProcessOrder = false; // Not enough stock
+                break;
             }
+        }
 
-            unset($_SESSION['cart']);
-            header('location:order-history.php');
+        if ($canProcessOrder) {
+            // Update the payment method for the orders
+            $updatePaymentQuery = "UPDATE orders SET paymentMethod='$payMethod' WHERE userId='$userId' AND paymentMethod IS NULL";
+            $updatePaymentResult = mysqli_query($con, $updatePaymentQuery);
+
+            if ($updatePaymentResult) {
+                // Deduct stock for confirmed orders
+                mysqli_data_seek($orderResult, 0); // Reset result set pointer
+                while ($order = mysqli_fetch_assoc($orderResult)) {
+                    $productId = $order['productId'];
+                    $quantity = $order['quantity'];
+
+                    $updateStockQuery = "UPDATE products SET stock = stock - $quantity WHERE id='$productId'";
+                    mysqli_query($con, $updateStockQuery);
+                }
+
+                unset($_SESSION['cart']);
+                header('location:order-history.php');
+                exit();
+            } else {
+                echo "<script>alert('Error updating payment method. Please try again.');</script>";
+            }
         } else {
-            echo "<script>alert('Error updating payment method or stock.');</script>";
+            echo "<script>alert('Insufficient stock for one or more items in your order. Please update your cart.');</script>";
         }
     }
 }
@@ -41,13 +71,47 @@ if(strlen($_SESSION['login'])==0) {
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Shopping Portal | Payment Method</title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/green.css">
     <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <style>
+        .payment-option {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .payment-option:hover, .payment-option.selected {
+            border-color: #28a745;
+            background-color: #e9f7ef;
+        }
+        .payment-option input {
+            display: none;
+        }
+        .payment-option label {
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 10px;
+            background-color: #28a745;
+            transition: width 1s linear;
+        }
+    </style>
 </head>
 <body class="cnt-home">
 
@@ -72,40 +136,68 @@ if(strlen($_SESSION['login'])==0) {
     <div class="container">
         <div class="checkout-box faq-page inner-bottom-sm">
             <div class="row">
-                <div class="col-md-12">
-                    <h2>Choose Payment Method</h2>
-                    <div class="panel-group checkout-steps" id="accordion">
-                        <div class="panel panel-default checkout-step-01">
-                            <div class="panel-heading">
-                                <h4 class="unicase-checkout-title">
-                                    <a data-toggle="collapse" class="" data-parent="#accordion" href="#collapseOne">
-                                        Select your Payment Method
-                                    </a>
-                                </h4>
-                            </div>
-                            <div id="collapseOne" class="panel-collapse collapse in">
-                                <div class="panel-body">
-                                    <form name="payment" method="post">
-                                        <input type="radio" name="paymethod" value="COD" checked="checked"> COD
-                                        <input type="radio" name="paymethod" value="Internet Banking"> Internet Banking
-                                        <input type="radio" name="paymethod" value="Debit / Credit card"> Debit / Credit card
-                                        <br><br>
-                                        <input type="submit" value="Submit" name="submit" class="btn btn-primary">
-                                    </form>
-                                </div>
-                            </div>
-                        </div> 
-                    </div>
+                <div class="col-md-8 col-md-offset-2">
+                    <h2 class="text-center">Choose Payment Method</h2>
+                    <form name="payment" method="post" id="paymentForm">
+                        <div class="payment-option">
+                            <label for="cod">
+                                <input type="radio" name="paymethod" value="COD" id="cod">
+                                <span>Cash on Delivery (COD)</span>
+                                <i class="fa fa-truck"></i>
+                            </label>
+                        </div>
+
+                        <div class="payment-option">
+                            <label for="netbanking">
+                                <input type="radio" name="paymethod" value="Internet Banking" id="netbanking">
+                                <span>Internet Banking</span>
+                                <i class="fa fa-globe"></i>
+                            </label>
+                        </div>
+
+                        <div class="payment-option">
+                            <label for="creditcard">
+                                <input type="radio" name="paymethod" value="Credit Card" id="creditcard">
+                                <span>Credit Card</span>
+                                <i class="fa fa-credit-card"></i>
+                            </label>
+                        </div>
+
+                        <div class="payment-option">
+                            <label for="debitcard">
+                                <input type="radio" name="paymethod" value="Debit Card" id="debitcard">
+                                <span>Debit Card</span>
+                                <i class="fa fa-university"></i>
+                            </label>
+                        </div>
+
+                        <br>
+                        <input type="submit" value="Proceed" name="submit" class="btn btn-success btn-lg btn-block" id="submitBtn">
+                    </form>
                 </div>
             </div>
         </div>
-        <?php include('includes/brands-slider.php');?>
     </div>
 </div>
 
-<?php include('includes/footer.php');?>
-
 <script src="assets/js/jquery-1.11.1.min.js"></script>
 <script src="assets/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $(".payment-option").click(function() {
+            $(".payment-option").removeClass("selected");
+            $(this).addClass("selected");
+            $(this).find("input").prop("checked", true);
+        });
+
+        $("#paymentForm").submit(function(event) {
+            var selectedPayment = $("input[name='paymethod']:checked").val();
+            if (!selectedPayment) {
+                event.preventDefault();
+                alert("Please select a payment method.");
+            }
+        });
+    });
+</script>
 </body>
 </html>
